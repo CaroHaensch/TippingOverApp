@@ -26,6 +26,22 @@ function(input, output){
     rangefile <- input$rangefile
     
     
+    
+    if (input$xAxis!="alpha" & input$yAxis!="alpha"){
+      alpha1range <- c(input$alpha,input$alpha+0.05)}
+    if (input$xAxis!="beta" & input$yAxis!="beta"){
+      beta1range <- c(input$beta,input$beta+0.05)}
+    if (input$xAxis!="gamma" & input$yAxis!="gamma"){
+      gamma1range <- c(input$gamma,input$gamma+0.05)}
+    if (input$xAxis!="q" & input$yAxis!="q"){
+      qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.1,input$q+0.1))}
+    validate(
+      need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please"),
+      need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " "),
+      need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
+      need(try(seq(qrange[1],qrange[2],length.out = steps)), " ")
+    )
+    
     if (!is.null(rangefile)) {
       infileRange <- read.csv(rangefile$datapath,
                               header=T,
@@ -33,6 +49,8 @@ function(input, output){
                               dec = input$dec2,
                               row.names = NULL)
       validate(
+        need(is.null(input$alpha)|is.null(input$beta)|is.null(input$gamma)|is.null(input$q),
+             "One moment please..."),
         need(input$sep2!=input$dec2, 
              "Separator and decimal separator cannot be the same"),
         need(!is.null(infileRange$gamma1range), 
@@ -73,13 +91,19 @@ function(input, output){
         need(length(infileRange$beta1range)==2, "Please check if your column
              'beta1range' has length two"),
         need(length(infileRange$qrange)==2, "Please check if your column
-             'qrange' has length two")
+             'qrange' has length two"),
+        need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please"),
+        need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " "),
+        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
+        need(try(seq(qrange[1],qrange[2],length.out = steps)), " ")
         )
       alpha1range <- infileRange$alpha1range
       beta1range <- infileRange$beta1range
       gamma1range <- infileRange$gamma1range
       qrange <- infileRange$qrange
     }
+    
+    
     
     alpha1vector <- seq(alpha1range[1],alpha1range[2],length.out = steps)
     beta1vector <- seq(beta1range[1],beta1range[2],length.out = steps)
@@ -523,85 +547,24 @@ function(input, output){
 
     
     output$slideralpha <-renderUI({
-      reacDat <- ReacData()
-      SensPara <- reacDat[[1]]
-      alpha1vector <- SensPara$alpha1vector
-      beta1vector <- SensPara$beta1vector
-      gamma1vector <- SensPara$gamma1vector
-      qvector <- SensPara$qvector
-      
-      alpha1range <- SensPara$alpha1range
-      beta1range <- SensPara$beta1range
-      gamma1range <- SensPara$gamma1range
-      qrange <- SensPara$qrange
-      
-      sliderInput("alpha", "Choose a value for alpha",
-                  min = alpha1range[1], max = alpha1range[2],
-                  value = input$alpha, 
-                 step = (alpha1range[2]-alpha1range[1])/(steps-1))
+  
+      numericInput("alpha", "Choose a value for alpha", 0.5, min = -10, max = 10)
     })
     
     
     
     output$sliderbeta <-renderUI({
-      reacDat <- ReacData()
-      SensPara <- reacDat[[1]]
-      alpha1vector <- SensPara$alpha1vector
-      beta1vector <- SensPara$beta1vector
-      gamma1vector <- SensPara$gamma1vector
-      qvector <- SensPara$qvector
-      
-      alpha1range <- SensPara$alpha1range
-      beta1range <- SensPara$beta1range
-      gamma1range <- SensPara$gamma1range
-      qrange <- SensPara$qrange
-      
-      
-      sliderInput("beta", "Choose a value for beta",
-                  min = beta1range[1], max = beta1range[2],
-                  value = input$beta, 
-                  step = (beta1range[2]-beta1range[1])/(steps-1))
+      numericInput("beta", "Choose a value for beta", 0.5, min = -10, max = 10)
     })
     
     
     output$slidergamma <-renderUI({
-      reacDat <- ReacData()
-      SensPara <- reacDat[[1]]
-      alpha1vector <- SensPara$alpha1vector
-      beta1vector <- SensPara$beta1vector
-      gamma1vector <- SensPara$gamma1vector
-      qvector <- SensPara$qvector
-      
-      alpha1range <- SensPara$alpha1range
-      beta1range <- SensPara$beta1range
-      gamma1range <- SensPara$gamma1range
-      qrange <- SensPara$qrange
-      
-      
-      sliderInput("gamma", "Choose a value for gamma",
-                  min = gamma1range[1], max = gamma1range[2],
-                  value = input$gamma, 
-                  step = (gamma1range[2]-gamma1range[1])/(steps-1))
+      numericInput("gamma", "Choose a value for gamma", 0.5, min = -10, max = 10)
     })
     
     
     output$sliderq <-renderUI({
-      reacDat <- ReacData()
-      SensPara <- reacDat[[1]]
-      alpha1vector <- SensPara$alpha1vector
-      beta1vector <- SensPara$beta1vector
-      gamma1vector <- SensPara$gamma1vector
-      qvector <- SensPara$qvector
-      
-      alpha1range <- SensPara$alpha1range
-      beta1range <- SensPara$beta1range
-      gamma1range <- SensPara$gamma1range
-      qrange <- SensPara$qrange
-    
-      
-      sliderInput("q", "Choose a value for q", 
-                  min = qrange[1], max = qrange[2],
-                  value = input$q, step = (qrange[2]-qrange[1])/(steps-1))
+      numericInput("q", "Choose a value for q", 0.5, min = -10, max = 10)
     })
     
 
