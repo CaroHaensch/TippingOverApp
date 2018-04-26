@@ -12,15 +12,16 @@ function(input, output){
 
     Var1<-Var2<-value<-NULL
 
-
+    steps <- 10
     
     
-   ReacDataSens <- reactive({
+   ReacData <- reactive({
     
       alpha1range <- c(-0.693,0.693)
       beta1range <- c(-0.693,0.693)
       gamma1range <- c(-0.693,0.693)
       qrange <- c(0.1,1)
+      steps <- 10
       
     rangefile <- input$rangefile
     
@@ -101,10 +102,9 @@ function(input, output){
                gamma1vector= gamma1vector, qvector=qvector,
                alpha1range=alpha1range,beta1range=beta1range,
                gamma1range=gamma1range,qrange=qrange)
-    })
 
     
-    steps <- 10
+
 
 
 
@@ -113,18 +113,8 @@ function(input, output){
 
     arraypara <- array(dim = c(steps,steps,steps,steps,3))
 
-    reacData <- reactive({
-      
-      SensPara <- ReacDataSens()
-      alpha1vector <- SensPara$alpha1vector
-      beta1vector <- SensPara$beta1vector
-      gamma1vector <- SensPara$gamma1vector
-      qvector <- SensPara$qvector
-      
-      alpha1range <- SensPara$alpha1range
-      beta1range <- SensPara$beta1range
-      gamma1range <- SensPara$gamma1range
-      qrange <- SensPara$qrange
+    
+    
       
       validate(
         need(input$xAxis!=input$yAxis, 
@@ -165,47 +155,23 @@ function(input, output){
             'Outcome' is numeric"),
       
 
-       need(length(infileDataFrame$Treatment)>2, "Please check if your column
-            'Treatment' at least length two"),
-       need(length(infileDataFrame$Outcome)>2, "Please check if your column
-            'Outcome' at least length two"),
+       need(length(infileDataFrame$Treatment)>4, "Please check if your column
+            'Treatment' at least length four"),
+       need(length(infileDataFrame$Outcome)>4, "Please check if your column
+            'Outcome' at least length four"),
        need(sum(infileDataFrame$Treatment!=0&infileDataFrame$Treatment!=1)==0, 
             "Data entries in the Treatment Column have to be either 1 or 0."),
        need(sum(infileDataFrame$Outcome!=0&infileDataFrame$Outcome!=1)==0, 
             "Data entries in the Outcome Column have to be either 1 or 0."))
+      
+      validate(need(sum(infileDataFrame$Treatment==1&infileDataFrame$Outcome==1)>0&
+                      sum(infileDataFrame$Treatment==1&infileDataFrame$Outcome==0)>0&
+                      sum(infileDataFrame$Treatment==0&infileDataFrame$Outcome==1)>0&
+                      sum(infileDataFrame$Treatment==0&infileDataFrame$Outcome==0)>0, 
+                    "You need at least one observation from each of the four possible 
+                    Treatment/Outcome combinations."))
+      
       }
-
-
-   
-      
-      
-      
-      output$slideralpha <-renderUI({
-        sliderInput("alpha", "Choose a value for alpha",
-                    min = alpha1range[1], max = alpha1range[2],
-                    value = input$alpha, 
-                    step = (alpha1range[2]-alpha1range[1])/(steps-1))
-      })
-      
-      output$sliderbeta <-renderUI({
-        sliderInput("beta", "Choose a value for beta",
-                    min = beta1range[1], max = beta1range[2],
-                    value = input$beta, 
-                    step = (beta1range[2]-beta1range[1])/(steps-1))
-      })
-      
-      output$slidergamma <-renderUI({
-        sliderInput("gamma", "Choose a value for gamma",
-                    min = gamma1range[1], max = gamma1range[2],
-                    value = input$gamma, 
-                    step = (gamma1range[2]-gamma1range[1])/(steps-1))
-      })
-      
-      output$sliderq <-renderUI({
-        sliderInput("q", "Choose a value for q", 
-                    min = qrange[1], max = qrange[2],
-                    value = input$q, step = (qrange[2]-qrange[1])/(steps-1))
-      })
 
     for (i in 1:steps){
       for (j in 1:steps){
@@ -341,6 +307,7 @@ function(input, output){
             if(beta0==0){
               ATEmatrix[i,j,k,l] <- NA
             }
+            
           }
         }
       }
@@ -412,7 +379,11 @@ function(input, output){
 
       ATEmatrixdf <- eval(parse(text=pasteform))
 
-      ATEmatrixdf
+      
+
+      
+      reacDat<-list(DataSens,ATEmatrixdf)
+      reacDat
     })
 
     # We now have the correct data, now it's time for plotting the TippingPointPlot
@@ -422,7 +393,8 @@ function(input, output){
     
     plotInput <- reactive({
       
-      SensPara <- ReacDataSens()
+      reacDat <- ReacData()
+      SensPara <- reacDat[[1]]
       alpha1vector <- SensPara$alpha1vector
       beta1vector <- SensPara$beta1vector
       gamma1vector <- SensPara$gamma1vector
@@ -433,7 +405,9 @@ function(input, output){
       gamma1range <- SensPara$gamma1range
       qrange <- SensPara$qrange
 
-      ATEmatrixdf <- reacData()
+      ATEmatrixdf <- reacDat[[2]]
+      
+ 
 
       if(input$yAxis=="alpha"|input$yAxis=="beta"&input$xAxis!="alpha"|
          input$yAxis=="gamma"&input$xAxis=="q"){
@@ -547,7 +521,89 @@ function(input, output){
       print(plotInput())
     })
 
-   
+    
+    output$slideralpha <-renderUI({
+      reacDat <- ReacData()
+      SensPara <- reacDat[[1]]
+      alpha1vector <- SensPara$alpha1vector
+      beta1vector <- SensPara$beta1vector
+      gamma1vector <- SensPara$gamma1vector
+      qvector <- SensPara$qvector
+      
+      alpha1range <- SensPara$alpha1range
+      beta1range <- SensPara$beta1range
+      gamma1range <- SensPara$gamma1range
+      qrange <- SensPara$qrange
+      
+      sliderInput("alpha", "Choose a value for alpha",
+                  min = alpha1range[1], max = alpha1range[2],
+                  value = input$alpha, 
+                 step = (alpha1range[2]-alpha1range[1])/(steps-1))
+    })
+    
+    
+    
+    output$sliderbeta <-renderUI({
+      reacDat <- ReacData()
+      SensPara <- reacDat[[1]]
+      alpha1vector <- SensPara$alpha1vector
+      beta1vector <- SensPara$beta1vector
+      gamma1vector <- SensPara$gamma1vector
+      qvector <- SensPara$qvector
+      
+      alpha1range <- SensPara$alpha1range
+      beta1range <- SensPara$beta1range
+      gamma1range <- SensPara$gamma1range
+      qrange <- SensPara$qrange
+      
+      
+      sliderInput("beta", "Choose a value for beta",
+                  min = beta1range[1], max = beta1range[2],
+                  value = input$beta, 
+                  step = (beta1range[2]-beta1range[1])/(steps-1))
+    })
+    
+    
+    output$slidergamma <-renderUI({
+      reacDat <- ReacData()
+      SensPara <- reacDat[[1]]
+      alpha1vector <- SensPara$alpha1vector
+      beta1vector <- SensPara$beta1vector
+      gamma1vector <- SensPara$gamma1vector
+      qvector <- SensPara$qvector
+      
+      alpha1range <- SensPara$alpha1range
+      beta1range <- SensPara$beta1range
+      gamma1range <- SensPara$gamma1range
+      qrange <- SensPara$qrange
+      
+      
+      sliderInput("gamma", "Choose a value for gamma",
+                  min = gamma1range[1], max = gamma1range[2],
+                  value = input$gamma, 
+                  step = (gamma1range[2]-gamma1range[1])/(steps-1))
+    })
+    
+    
+    output$sliderq <-renderUI({
+      reacDat <- ReacData()
+      SensPara <- reacDat[[1]]
+      alpha1vector <- SensPara$alpha1vector
+      beta1vector <- SensPara$beta1vector
+      gamma1vector <- SensPara$gamma1vector
+      qvector <- SensPara$qvector
+      
+      alpha1range <- SensPara$alpha1range
+      beta1range <- SensPara$beta1range
+      gamma1range <- SensPara$gamma1range
+      qrange <- SensPara$qrange
+    
+      
+      sliderInput("q", "Choose a value for q", 
+                  min = qrange[1], max = qrange[2],
+                  value = input$q, step = (qrange[2]-qrange[1])/(steps-1))
+    })
+    
 
   }
 
