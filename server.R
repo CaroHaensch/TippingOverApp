@@ -20,7 +20,7 @@ function(input, output){
       alpha1range <- c(-0.693,0.693)
       beta1range <- c(-0.693,0.693)
       gamma1range <- c(-0.693,0.693)
-      qrange <- c(0.1,1)
+      qrange <- c(0.1,0.55)
       steps <- 10
       
 
@@ -40,20 +40,28 @@ function(input, output){
       gamma1range <- c(input$gamma,input$gamma+0.05)
       validate(
         need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " ")
+        
       )
-      
+      validate(
+        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
+        need((input$gamma> 0 & input$gamma< 1&
+               input$torg == "probtreatment")|
+               (input$gamma> 0 & input$gamma< 1& 
+               input$torg == "probcontrol")|
+               input$torg=="gamma", "No negative values for probability. Must be bigger than one and smaller than zero."))
       }
     if (input$xAxis!="q" & input$yAxis!="q"){
-      qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.1,input$q+0.1))
+      qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.0001,input$q+0.0001))
       validate(need(input$q<=1&input$q>=0, "No negative number or greater than one for proportion q."))
       validate(
         need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
-        need(input$gamma> 0 & input$gamma< 1&
-                   input$torg == "probtreatment"|
-                   input$gamma> 0 & input$gamma< 1& 
-                   input$torg == "probcontrol"|
-               input$torg=="gamma", "No negative values for probability. Must be bigger than one and smaller than zero."))
-      }
+        need(input$q<1&input$q>0&
+               input$torg == "probtreatment"|
+               input$q<1& input$q>0& 
+               input$torg == "probcontrol"|
+               input$torg=="gamma", "q must be smaller than one and bigger than zero when using probtreatment/probcontrol."))
+      
+           }
     
       
       rangefile <- input$rangefile
@@ -120,12 +128,22 @@ function(input, output){
 
       if (input$xAxis=="gamma" | input$yAxis=="gamma"){
         validate(
-          need(infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1&
-                 input$torg == "probtreatment"|
-                 infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1& 
-                 input$torg == "probcontrol"|
-                 input$torg=="gamma", "No negative values for probability please. Must be bigger than zero and smaller than one.  Check your range."))
+          need((infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1&
+                 input$torg == "probtreatment")|
+                 (infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1& 
+                 input$torg == "probcontrol")|
+                 input$torg=="gamma", "No negative values for probability please. 
+               Must be bigger than zero and smaller than one.  Check your range."))
         
+      }
+      if (input$xAxis=="q" | input$yAxis=="q"){
+      validate(
+        need((infileRange$qrange[2]<1&infileRange$qrange[1]>0&
+               input$torg == "probtreatment")|
+               (infileRange$qrange[2]<1& infileRange$qrange[1]>0)& 
+               input$torg == "probcontrol"|
+               input$torg=="gamma", "q must be smaller than one and bigger than 
+             zero when using probtreatment/probcontrol for computational reasons."))
       }
       
       alpha1range <- infileRange$alpha1range
