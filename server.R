@@ -23,33 +23,50 @@ function(input, output){
       qrange <- c(0.1,1)
       steps <- 10
       
-    rangefile <- input$rangefile
-    
+
     
     
     if (input$xAxis!="alpha" & input$yAxis!="alpha"){
-      alpha1range <- c(input$alpha,input$alpha+0.05)}
+      alpha1range <- c(input$alpha,input$alpha+0.05)
+      validate(
+        need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please")
+      )}
     if (input$xAxis!="beta" & input$yAxis!="beta"){
-      beta1range <- c(input$beta,input$beta+0.05)}
+      beta1range <- c(input$beta,input$beta+0.05)
+      validate(
+        need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " ")
+      )}
     if (input$xAxis!="gamma" & input$yAxis!="gamma"){
-      gamma1range <- c(input$gamma,input$gamma+0.05)}
+      gamma1range <- c(input$gamma,input$gamma+0.05)
+      validate(
+        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " ")
+      )
+      
+      }
     if (input$xAxis!="q" & input$yAxis!="q"){
-      qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.1,input$q+0.1))}
-    validate(
-      need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please"),
-      need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " "),
-      need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
-      need(try(seq(qrange[1],qrange[2],length.out = steps)), " ")
-    )
+      qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.1,input$q+0.1))
+      validate(need(input$q<=1&input$q>=0, "No negative number or greater than one for proportion q."))
+      validate(
+        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
+        need(input$gamma> 0 & input$gamma< 1&
+                   input$torg == "probtreatment"|
+                   input$gamma> 0 & input$gamma< 1& 
+                   input$torg == "probcontrol"|
+               input$torg=="gamma", "No negative values for probability. Must be bigger than one and smaller than zero."))
+      }
     
+      
+      rangefile <- input$rangefile
+      
     if (!is.null(rangefile)) {
-      infileRange <- read.csv(rangefile$datapath,
+     
+      infileRange <- read.csv(input$rangefile$datapath,
                               header=T,
                               sep=input$sep2,
                               dec = input$dec2,
                               row.names = NULL)
       validate(
-        need(is.null(input$alpha)|is.null(input$beta)|is.null(input$gamma)|is.null(input$q),
+        need(!is.null(input$alpha)|!is.null(input$beta)|!is.null(input$gamma)|!is.null(input$q),
              "One moment please..."),
         need(input$sep2!=input$dec2, 
              "Separator and decimal separator cannot be the same"),
@@ -92,34 +109,73 @@ function(input, output){
              'beta1range' has length two"),
         need(length(infileRange$qrange)==2, "Please check if your column
              'qrange' has length two"),
+        
+        
+        
         need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please"),
         need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " "),
         need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
         need(try(seq(qrange[1],qrange[2],length.out = steps)), " ")
         )
+
+      if (input$xAxis=="gamma" | input$yAxis=="gamma"){
+        validate(
+          need(infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1&
+                 input$torg == "probtreatment"|
+                 infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1& 
+                 input$torg == "probcontrol"|
+                 input$torg=="gamma", "No negative values for probability please. Must be bigger than zero and smaller than one.  Check your range."))
+        
+      }
+      
       alpha1range <- infileRange$alpha1range
       beta1range <- infileRange$beta1range
       gamma1range <- infileRange$gamma1range
       qrange <- infileRange$qrange
+      
+      if (input$xAxis!="alpha" & input$yAxis!="alpha"){
+        alpha1range <- c(input$alpha,input$alpha+0.05)
+        validate(
+          need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please")
+        )}
+      if (input$xAxis!="beta" & input$yAxis!="beta"){
+        beta1range <- c(input$beta,input$beta+0.05)
+        validate(
+          need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " ")
+        )}
+      if (input$xAxis!="gamma" & input$yAxis!="gamma"){
+        gamma1range <- c(input$gamma,input$gamma+0.05)
+        validate(
+          need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
+          need(input$gamma>= 0 & input$gamma<= 1&
+                 input$torg == "probtreatment"|
+                 input$gamma>= 0 & input$gamma<= 1& 
+                 input$torg == "probcontrol"|
+                 input$torg=="gamma", "No negative values for probability. Please check the range."))
+        
+      }
+      if (input$xAxis!="q" & input$yAxis!="q"){
+        qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.1,input$q+0.1))
+        validate(need(input$q<=1&input$q>=0, "No negative number or greater than one for proportion q."))
+      }
+      
+ 
+      
     }
     
-    
+   
     
     alpha1vector <- seq(alpha1range[1],alpha1range[2],length.out = steps)
     beta1vector <- seq(beta1range[1],beta1range[2],length.out = steps)
     gamma1vector <- seq(gamma1range[1],gamma1range[2],length.out = steps)
     qvector <- seq(qrange[1],qrange[2],length.out = steps)
     
-    validate(
-      need((sum(input$rangefile$gamma1range>=0) == 2 & 
-              input$torg == "probtreatment")|
-             (sum(input$rangefile$gamma1range>=0) == 2 & 
-                input$torg=="control")|
-             input$torg=="gamma", 
-           "Please check if the probabilities you specified for
-           gamma1range are positive for the whole range. 
-           Default lower range of the app is negative, therefore 
-           no plot will be displayed for the default data."))
+    print(alpha1vector)
+    print(beta1vector)
+    print(gamma1vector)
+    print(qvector)
+    
+  
     
     
     DataSens<- data.frame(alpha1vector=alpha1vector,beta1vector=beta1vector,
@@ -160,8 +216,7 @@ function(input, output){
                                   sep=input$sep,
                                   dec = input$dec,
                                   row.names = NULL)
-      DataF <- data.frame(Treatment=infileDataFrame$Treatment,
-                        Y=infileDataFrame$Outcome)
+
       
       validate(
         need(input$sep!=input$dec, 
@@ -194,6 +249,9 @@ function(input, output){
                       sum(infileDataFrame$Treatment==0&infileDataFrame$Outcome==0)>0, 
                     "You need at least one observation from each of the four possible 
                     Treatment/Outcome combinations."))
+      
+      DataF <- data.frame(Treatment=infileDataFrame$Treatment,
+                          Y=infileDataFrame$Outcome)
       
       }
 
@@ -559,12 +617,12 @@ function(input, output){
     
     
     output$slidergamma <-renderUI({
-      numericInput("gamma", "Choose a value for gamma", 0.5, min = -10, max = 10)
+      numericInput("gamma", "Choose a value for gamma (default) or probtreatment/probcontrol (if choosen below)", 0.5, min = -10, max = 10)
     })
     
     
     output$sliderq <-renderUI({
-      numericInput("q", "Choose a value for q", 0.5, min = -10, max = 10)
+      numericInput("q", "Choose a value for q", 0.5, min = 0, max = 1)
     })
     
 

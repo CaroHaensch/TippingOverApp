@@ -63,7 +63,8 @@ fluidPage(
                 choices = c("gamma", "probtreatment", "probcontrol"),
                 selected = "gamma"
     ),
-    helpText("Instead of specifying a range of values for gamma1, one can also choose to specify a range of values for the probability of treatment OR control when U==1.")),
+    helpText("Instead of specifying a range of values for gamma1, one can also choose to specify a range of values for the probability of treatment OR control when U==1. 
+             However, the default lower range is -0.7 for the gamma/probtreatment/probcontrol axis, so please upload your own sensitivity parameter ranges on the right.")),
 
     wellPanel(
     selectInput("filling", "The colour filling.",
