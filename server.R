@@ -17,176 +17,54 @@ function(input, output){
     
    ReacData <- reactive({
     
-      alpha1range <- c(-0.693,0.693)
-      beta1range <- c(-0.693,0.693)
-      gamma1range <- c(-0.693,0.693)
-      qrange <- c(0.1,0.55)
-      steps <- 10
-      
-
-    
-    
-    if (input$xAxis!="alpha" & input$yAxis!="alpha"){
-      alpha1range <- c(input$alpha,input$alpha+0.05)
-      validate(
-        need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please")
-      )}
-    if (input$xAxis!="beta" & input$yAxis!="beta"){
-      beta1range <- c(input$beta,input$beta+0.05)
-      validate(
-        need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " ")
-      )}
-    if (input$xAxis!="gamma" & input$yAxis!="gamma"){
-      gamma1range <- c(input$gamma,input$gamma+0.05)
-      validate(
-        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " ")
-        
-      )
-      validate(
-        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
-        need((input$gamma> 0 & input$gamma< 1&
-               input$torg == "probtreatment")|
-               (input$gamma> 0 & input$gamma< 1& 
-               input$torg == "probcontrol")|
-               input$torg=="gamma", "No negative values for probability. Must be bigger than one and smaller than zero."))
-      }
-    if (input$xAxis!="q" & input$yAxis!="q"){
-      qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.0001,input$q+0.0001))
-      validate(need(input$q<=1&input$q>=0, "No negative number or greater than one for proportion q."))
-      validate(
-        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
-        need(input$q<1&input$q>0&
-               input$torg == "probtreatment"|
-               input$q<1& input$q>0& 
-               input$torg == "probcontrol"|
-               input$torg=="gamma", "q must be smaller than one and bigger than zero when using probtreatment/probcontrol."))
-      
-           }
-    
-      
-      rangefile <- input$rangefile
-      
-    if (!is.null(rangefile)) {
+     steps <- 10
      
-      infileRange <- read.csv(input$rangefile$datapath,
-                              header=T,
-                              sep=input$sep2,
-                              dec = input$dec2,
-                              row.names = NULL)
-      validate(
-        need(!is.null(input$alpha)|!is.null(input$beta)|!is.null(input$gamma)|!is.null(input$q),
-             "One moment please..."),
-        need(input$sep2!=input$dec2, 
-             "Separator and decimal separator cannot be the same"),
-        need(!is.null(infileRange$gamma1range), 
-             "Please check if you have a column named 'gamma1range' in your 
-             sensitivity parameter dataset"),
-        need(!is.null(infileRange$alpha1range), "Please check if you have a 
-             column named 'alpha1range' in your sensitivity parameter  dataset"),
-        need(!is.null(infileRange$beta1range), "Please check if you have a 
-             column named 'beta1range' in your sensitivity parameter  dataset"),
-        need(!is.null(infileRange$qrange), "Please check if you have a column 
-             named 'qrange' in your sensitivity parameter dataset"),
-        
-        need(infileRange$gamma1range[1]<infileRange$gamma1range[2], 
-             "Please check if the range limits of gamma1 are in the right order: 
-             frist lower limit, then higher limit."),
-        need(infileRange$alpha1range[1]<infileRange$alpha1range[2], 
-             "Please check if the range limits of alpha1 are in the right order: 
-             frist lower limit, then higher limit."),
-        need(infileRange$beta1range[1]<infileRange$beta1range[2], "Please check 
-             if the range limits of beta1 are in the right order: frist lower 
-             limit, then higher limit."),
-        need(infileRange$qrange[1]<infileRange$qrange[2], "Please check if the 
-             range limits of q are in the right order: frist lower limit, then 
-             higher limit."),
-        
-        need(is.numeric(infileRange$gamma1range), "Please check if your column
-             'gamma1range' is numeric"),
-        need(is.numeric(infileRange$alpha1range), "Please check if your column
-             'alpha1range' is numeric"),
-        need(is.numeric(infileRange$beta1range), "Please check if your column
-             'beta1range' is numeric"),
-        need(is.numeric(infileRange$qrange), "Please check if your column
-             'qrange' is numeric"),
-        need(length(infileRange$gamma1range)==2, "Please check if your column
-             'gamma1range' has length two"),
-        need(length(infileRange$alpha1range)==2, "Please check if your column
-             'alpha1range' has length two"),
-        need(length(infileRange$beta1range)==2, "Please check if your column
-             'beta1range' has length two"),
-        need(length(infileRange$qrange)==2, "Please check if your column
-             'qrange' has length two"),
-        
-        
-        
-        need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please"),
-        need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " "),
-        need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
-        need(try(seq(qrange[1],qrange[2],length.out = steps)), " ")
-        )
 
-      if (input$xAxis=="gamma" | input$yAxis=="gamma"){
-        validate(
-          need((infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1&
-                 input$torg == "probtreatment")|
-                 (infileRange$gamma1range[1]> 0 & infileRange$gamma1range[2]< 1& 
-                 input$torg == "probcontrol")|
-                 input$torg=="gamma", "No negative values for probability please. 
-               Must be bigger than zero and smaller than one.  Check your range."))
-        
-      }
-      if (input$xAxis=="q" | input$yAxis=="q"){
-      validate(
-        need((infileRange$qrange[2]<1&infileRange$qrange[1]>0&
-               input$torg == "probtreatment")|
-               (infileRange$qrange[2]<1& infileRange$qrange[1]>0)& 
-               input$torg == "probcontrol"|
-               input$torg=="gamma", "q must be smaller than one and bigger than 
-             zero when using probtreatment/probcontrol for computational reasons."))
-      }
-      
-      alpha1range <- infileRange$alpha1range
-      beta1range <- infileRange$beta1range
-      gamma1range <- infileRange$gamma1range
-      qrange <- infileRange$qrange
-      
+     validate(
+       need(!is.null(input$alpha)|!is.null(input$beta)|!is.null(input$gamma)|!is.null(input$q),
+            "One moment please... Loading might take about ten seconds.")
+     )
+     
+     if (input$xAxis=="alpha"|input$yAxis=="alpha"){
+       alpha1range <- input$alpha1range
+       alpha1vector <- seq(alpha1range[1],alpha1range[2],length.out = steps)       
+       }
+     if (input$xAxis=="beta"|input$yAxis=="beta"){
+       beta1range <- input$beta1range
+       beta1vector <- seq(beta1range[1],beta1range[2],length.out = steps)
+       }
+     if (input$xAxis=="gamma"|input$yAxis=="gamma"){
+       gamma1range <- input$gamma1range
+       gamma1vector <- seq(gamma1range[1],gamma1range[2],length.out = steps)
+       }
+     if (input$xAxis=="q" | input$yAxis=="q"){
+       qrange <- input$qrange
+       qvector <- seq(qrange[1],qrange[2],length.out = steps)
+       }
+     
+     
+    
+    
       if (input$xAxis!="alpha" & input$yAxis!="alpha"){
-        alpha1range <- c(input$alpha,input$alpha+0.05)
-        validate(
-          need(try(seq(alpha1range[1],alpha1range[2],length.out = steps)), "One moment please")
-        )}
+        alpha1range <- c(input$alpha,input$alpha)
+        alpha1vector <- rep(input$alpha,steps)
+        }
       if (input$xAxis!="beta" & input$yAxis!="beta"){
-        beta1range <- c(input$beta,input$beta+0.05)
-        validate(
-          need(try(seq(beta1range[1],beta1range[2],length.out = steps)), " ")
-        )}
+        beta1range <- c(input$beta,input$beta)
+        beta1vector <- rep(input$beta,steps)
+        }
       if (input$xAxis!="gamma" & input$yAxis!="gamma"){
-        gamma1range <- c(input$gamma,input$gamma+0.05)
-        validate(
-          need(try(seq(gamma1range[1],gamma1range[2],length.out = steps)), " "),
-          need(input$gamma>= 0 & input$gamma<= 1&
-                 input$torg == "probtreatment"|
-                 input$gamma>= 0 & input$gamma<= 1& 
-                 input$torg == "probcontrol"|
-                 input$torg=="gamma", "No negative values for probability. Please check the range."))
-        
-      }
+        gamma1range <- c(input$gamma,input$gamma)
+        gamma1vector <- rep(input$gamma,steps)
+        }
       if (input$xAxis!="q" & input$yAxis!="q"){
-        qrange <- c(input$q,ifelse(input$q>0.5,input$q-0.1,input$q+0.1))
-        validate(need(input$q<=1&input$q>=0, "No negative number or greater than one for proportion q."))
-      }
+        qrange <- c(input$q,input$q)
+        qvector <- rep(input$q,steps)
+        }
       
- 
-      
-    }
     
-   
-    
-    alpha1vector <- seq(alpha1range[1],alpha1range[2],length.out = steps)
-    beta1vector <- seq(beta1range[1],beta1range[2],length.out = steps)
-    gamma1vector <- seq(gamma1range[1],gamma1range[2],length.out = steps)
-    qvector <- seq(qrange[1],qrange[2],length.out = steps)
+
+
     
     print(alpha1vector)
     print(beta1vector)
@@ -253,9 +131,9 @@ function(input, output){
       
 
        need(length(infileDataFrame$Treatment)>4, "Please check if your column
-            'Treatment' at least length four"),
+            'Treatment' has at least length four"),
        need(length(infileDataFrame$Outcome)>4, "Please check if your column
-            'Outcome' at least length four"),
+            'Outcome' has at least length four"),
        need(sum(infileDataFrame$Treatment!=0&infileDataFrame$Treatment!=1)==0, 
             "Data entries in the Treatment Column have to be either 1 or 0."),
        need(sum(infileDataFrame$Outcome!=0&infileDataFrame$Outcome!=1)==0, 
@@ -289,32 +167,17 @@ function(input, output){
             # Possibility of specifying the probability of getting into the
             # Treatment or Control group if U=1
 
-            if(input$torg == "probtreatment"){
-            probtreat <- gamma1vector[k]
-            probcontrol <- (q*probtreat-p)/(q-1)
-
-            gamma0 <- log(-probcontrol/(probcontrol-1))
-            gamma1 <- log(-probtreat/(probtreat-1))-gamma0
-            }
-
-            if(input$torg=="probcontrol"){
-              probcontrol <- gamma1vector[k]
-              probtreat <- (p + (q-1)*probcontrol)/q
-
-              gamma0 <- log(-probcontrol/(probcontrol-1))
-              gamma1 <- log(-probtreat/(probtreat-1))-gamma0
-            }
-
+          
             # Default: Specifying gamma1 and estimating gamma0
-            if(input$torg == "gamma"){
+            
             gamma1 <- gamma1vector[k]
             # Estimate gamma0 (see page 501)
             f1 <- function(x){
               q*exp(x + gamma1)/(1 + exp(x + gamma1)) + (1-q)*exp(x)/(1 + exp(x))-p
             }
 
-            gamma0 <- uniroot(f1,interval=c(-100,100))$root
-            }
+            gamma0 <- uniroot(f1,interval=c(-100,100), tol = .Machine$double.eps^0.5)$root
+            
 
             # Function parts that we will need to estimate alpha0, beta0 etc.
             q1 <- exp(gamma0 + gamma1)/(1 + exp(gamma0 + gamma1))
@@ -333,7 +196,7 @@ function(input, output){
               ((q*q1/(ptheo1))*exp(x + alpha1)/(1 + exp(x + alpha1)) + ((1-q)*q2/ptheo1)*exp(x)/(1 + exp(x)))-mittelwertT
             }
 
-            alpha0 <- uniroot(f2,interval=c(-100,100))$root
+            alpha0 <- uniroot(f2,interval=c(-100,100), tol = .Machine$double.eps^0.5)$root
 
             # Estimate beta0 (see page 502 RR)
 
@@ -343,7 +206,7 @@ function(input, output){
               (q*(q3)/(ptheo0))*exp(x + beta1)/(1 + exp(x + beta1)) + ((1-q)*(q4)/ptheo0)*exp(x)/(1 + exp(x))-mittelwertC
             }
 
-            beta0 <- tryCatch(uniroot(f3,interval=c(0,1),extendInt = "yes")$root, error=function(e) 0)
+            beta0 <- tryCatch(uniroot(f3,interval=c(0,1),extendInt = "yes", tol = .Machine$double.eps^0.5)$root, error=function(e) 0)
 
             # Save results
 
@@ -436,40 +299,28 @@ function(input, output){
 
       if (input$xAxis!="alpha"&input$yAxis!="alpha"){
         print(input$alpha)
-        print(which(abs(input$alpha-alpha1vector)==min(abs(input$alpha-alpha1vector))))
-        pasteform <- paste(pasteform,
-                           which(abs(input$alpha-alpha1vector)==
-                                   min(abs(input$alpha-alpha1vector))),sep="")
+        pasteform <- paste(pasteform,"1",sep="")
       }
 
       pasteform <- paste(pasteform,",",sep="")
 
       if (input$xAxis!="beta"&input$yAxis!="beta"){
         print(input$beta)
-        print(which(abs(input$beta-beta1vector)==min(abs(input$beta-beta1vector))))
-        pasteform <- paste(pasteform,
-                           which(abs(input$beta-beta1vector)==
-                                   min(abs(input$beta-beta1vector))),sep="")
+        pasteform <- paste(pasteform,"1",sep="")
       }
 
       pasteform <- paste(pasteform,",",sep="")
 
       if (input$xAxis!="gamma"&input$yAxis!="gamma"){
         print(input$gamma)
-        print(which(abs(input$gamma-gamma1vector)==
-                      min(abs(input$gamma-gamma1vector))))
-        pasteform <- paste(pasteform,
-                           which(abs(input$gamma-gamma1vector)==
-                                    min(abs(input$gamma-gamma1vector))),sep="")
+        pasteform <- paste(pasteform,"1",sep="")
       }
 
       pasteform <- paste(pasteform,",",sep="")
 
       if (input$xAxis!="q"&input$yAxis!="q"){
         print(input$q)
-        print(which(abs(input$q-qvector)==min(abs(input$q-qvector))))
-        pasteform <- paste(pasteform,which(abs(input$q-qvector)==
-                                             min(abs(input$q-qvector))),sep="")
+        pasteform <- paste(pasteform,"1",sep="")
       }
 
       pasteform <- paste(pasteform,"]",sep="")
@@ -550,11 +401,11 @@ function(input, output){
                                    steps))
 
       TippingPointPlot <- ggplot(ATEmatrixdf, 
-                                 aes(x=Var1, y=Var2))
+                                 aes(x=Var1, y= Var2))
 
 
       TippingPointPlot <- TippingPointPlot + 
-        geom_tile(aes(fill = value)) # Tile
+        geom_tile(aes(fill = round(value,3))) # Tile
       if(input$filling=="range"){
        if(min(ATEmatrixdf$value)>0)
          TippingPointPlot <- TippingPointPlot + 
@@ -590,21 +441,36 @@ function(input, output){
         geom_text(aes(x = Var1,
                       y = Var2, 
                       label = round(value,3)), 
-                  color = "black", alpha = 0.9, size = 3)
+                  color = "black", alpha = 1, size = 3)+
+         guides(fill=guide_legend(title="Value"))
 
 
       TippingPointPlot <- TippingPointPlot + 
-        scale_x_continuous(name = input$xAxis) +
-        scale_y_continuous(name = input$yAxis) 
+        scale_x_continuous(name = input$xAxis, 
+                           breaks = round(seq(var1range[1],
+                                               var1range[2],
+                                               length.out = steps),3), 
+                           labels = round(seq(var1range[1],
+                                               var1range[2],
+                                               length.out = steps),3)) +
+        scale_y_continuous(name = input$yAxis, 
+                           breaks = round(seq(var2range[1],
+                                               var2range[2],
+                                               length.out = steps),3), 
+                           labels = round(seq(var2range[1],
+                                               var2range[2],
+                                               length.out = steps),3)) + theme_bw() + 
+        theme(axis.text.x =  element_text(colour = "black"),
+              axis.text.y = element_text(colour = "black"))
 
       # Parameter Information for the Static Plots
       fixedpara<-","
       if (input$xAxis!="alpha" & input$yAxis!="alpha"){
-        fixedpara<-paste(fixedpara, paste("alpha = ",input$alpha))}
+        fixedpara<-paste(fixedpara, paste("alpha_1 = ",input$alpha))}
       if (input$xAxis!="beta" & input$yAxis!="beta"){
-        fixedpara<-paste(fixedpara,paste("beta = ",input$beta))}
+        fixedpara<-paste(fixedpara,paste("beta_1 = ",input$beta))}
       if (input$xAxis!="gamma" & input$yAxis!="gamma"){
-        fixedpara<-paste(fixedpara,paste("gamma = ",input$gamma))}
+        fixedpara<-paste(fixedpara,paste("gamma_1 = ",input$gamma))}
       if (input$xAxis!="q" & input$yAxis!="q"){
         fixedpara<-paste(fixedpara,paste("q = ",input$q))}
 
@@ -623,24 +489,51 @@ function(input, output){
 
     
     output$slideralpha <-renderUI({
-  
-      numericInput("alpha", "Choose a value for alpha", 0.5, min = -10, max = 10)
+      sliderInput("alpha", "Value for alpha_1",
+                  -10, 10, -0.7, step = 0.01)
     })
     
     
     
     output$sliderbeta <-renderUI({
-      numericInput("beta", "Choose a value for beta", 0.5, min = -10, max = 10)
+      sliderInput("beta", "Value for beta_1",
+                  -10, 10, 0, step = 0.01)
     })
     
     
     output$slidergamma <-renderUI({
-      numericInput("gamma", "Choose a value for gamma (default) or probtreatment/probcontrol (if choosen below)", 0.5, min = -10, max = 10)
-    })
+      sliderInput("gamma", "Value for gamma_1",
+                  -10, 10, 0, step = 0.01)
+          })
     
     
     output$sliderq <-renderUI({
-      numericInput("q", "Choose a value for q", 0.5, min = 0, max = 1)
+      sliderInput("q", "Value for q",
+                  0, 1, 0.5, step = 0.01)
+    })
+    
+    output$sliderrangealpha <-renderUI({
+      sliderInput("alpha1range", "Range for alpha_1",
+                  -10, 10, value=c(-1,1), step = 0.01)
+    })
+    
+    
+    
+    output$sliderrangebeta <-renderUI({
+      sliderInput("beta1range", "Range for beta_1",
+                  -10, 10, value=c(-1,1), step = 0.01)
+    })
+    
+    
+    output$sliderrangegamma <-renderUI({
+      sliderInput("gamma1range", "Range for gamma_1",
+                  -10, 10, value=c(-1,1), step = 0.01)
+    })
+    
+    
+    output$sliderrangeq <-renderUI({
+      sliderInput("qrange", "Range for q",
+                  0, 1, value=c(0.4,0.6), step = 0.01)
     })
     
 

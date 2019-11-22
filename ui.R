@@ -19,10 +19,7 @@ fluidPage(
 
   column(12,
   # Title
-  titlePanel("TippingSens App for Rosenbaum-Rubin Sensitivity Analyses"),
-
-  helpText("Beware: Loading might take about ten seconds.")
-  ),
+  titlePanel("TippingSens App for Rosenbaum-Rubin Sensitivity Analyses")),
   column(12,wellPanel(
     plotOutput("SensPlot")
   )
@@ -30,21 +27,36 @@ fluidPage(
 
   # Selection of the x-Axis and the y-Axis
   column(5, wellPanel(
-    helpText("You have to choose which sensitivity parameters shall be displayed on the x-Axis and y-Axis. The other two parameters will be fixed."),
+    helpText(" Choose which sensitivity parameters should be displayed on the axes of the output (the other two parameters will be treated as fixed).
+ "),
 
-    selectInput("xAxis", "xAxis",
+    selectInput("xAxis", " ",
                 choices = c("alpha",
                             "beta","gamma","q"),
                 selected = "alpha"
     ),
-    selectInput("yAxis", "yAxis",
+    selectInput("yAxis", " ",
                 choices = c("alpha",
                             "beta","gamma","q"),
                 selected = "beta"
     )),
+    
+   
+    
+    wellPanel(
+      helpText("Choose a range for the parameters displayed on the axes."),
+      conditionalPanel("input.xAxis == 'gamma'|input.yAxis == 'gamma'",
+                       uiOutput("sliderrangegamma")),
+      conditionalPanel("input.xAxis == 'alpha'|input.yAxis == 'alpha'",
+                       uiOutput("sliderrangealpha")),
+      conditionalPanel("input.xAxis == 'beta'|input.yAxis == 'beta'",
+                       uiOutput("sliderrangebeta")),
+      conditionalPanel("input.xAxis == 'q'|input.yAxis == 'q'",
+                       uiOutput("sliderrangeq"))
+    ),
 
     wellPanel(
-      helpText("Here you choose a value for the two other parameters that are not displayed on the axes."),
+      helpText("Chose a value for the parameters treated as fixed."),
 
 
       conditionalPanel("input.xAxis != 'gamma'&&input.yAxis != 'gamma'",
@@ -55,35 +67,15 @@ fluidPage(
                        uiOutput("sliderbeta")),
       conditionalPanel("input.xAxis != 'q'&&input.yAxis != 'q'",
                        uiOutput("sliderq"))
-    ),
-
-
-    wellPanel(
-    selectInput("torg", "Gamma values or probability of treatment/control?",
-                choices = c("gamma", "probtreatment", "probcontrol"),
-                selected = "gamma"
-    ),
-    helpText("Instead of specifying a range of values for gamma1, one can also choose to specify a range of values for the probability of treatment OR control when U==1. 
-             However, the default lower range is -0.7 for the gamma/probtreatment/probcontrol axis, so please upload your own sensitivity parameter ranges on the right.")),
-
-    wellPanel(
-    selectInput("filling", "The colour filling.",
-                choices = c("range", "zerotomax"),
-                selected = "range"
-    ),
-    helpText("When choosing range the lowest value will be white, when choosing zerotomax only cells with the value zero will be white.")
-
-  )),
+    )),
 
   column(7, wellPanel(
-    helpText("Take care to specify corrects column names. \n For the data frame, the column names  have to
-            'Treatment' and 'Outcome'. For the sensitivity parameter the column names have to be 'alpha1range', 'beta1range', 'gamma1range' and
-             'qrange'."),
-    helpText("Example files can be found here (https://github.com/CaroHaensch/TSExample)."),
-    helpText("No rownames or missing values are allowed.
-              Separators are allowed to be comma, point or tabular. Decimal separators are allowed to be comma or point."),
-    fileInput('datafile', 'Choose CSV File for the data (treatment and outcome). ',
-              accept=c('text/csv', 'text/comma-separated- values,text/plain', '.csv')),
+       fileInput('datafile', 'Choose CSV File for the data (treatment and outcome). ',
+              accept=c('text/csv', 'text/comma-separated- values,text/plain', '.csv')), 
+        helpText("Take care to specify column names correctly. The column names should be
+            'Treatment' and 'Outcome'. No rownames or missing values are allowed. Separators are allowed to be comma, point or tab. Decimal separators are allowed to be comma or point. "),
+       helpText("An example file can be found here (https://github.com/CaroHaensch/TSExample). "),
+       
     tags$hr(),
     radioButtons('sep', 'Separator',
                  c(Comma=',',
@@ -92,19 +84,22 @@ fluidPage(
 
     radioButtons('dec', 'Decimal separator',
                  c('Point'=".", 'Comma'=","))
+    
+    
   ),
+  
   wellPanel(
-  fileInput('rangefile', 'Choose CSV File for the range of the sensitivity parameters (alpha, beta, gamma, qrange).',
-            accept=c('text/csv', 'text/comma-separated- values,text/plain', '.csv'))
-  ,
-  tags$hr(),
-  radioButtons('sep2', 'Separator',
-               c(Comma=',',
-                 Semicolon=';',
-                 Tab='\t')),
-
-  radioButtons('dec2', 'Decimal separator',
-               c('Point'=".", 'Comma'=","))
+    selectInput("filling", "The colour filling",
+                choices = c("range", "zerotomax"),
+                selected = "range"
+    ),
+    helpText("When choosing range the highest value will be orange and the lowest white, when choosing zerotomax negative values will be blue, positive ones orange and values near zero are white.")
+    ),
+  wellPanel(
+    helpText("alpha - Log odds ratio of the confounder regarding the outcome in the treatment group "),
+    helpText("beta - Log odds ratio of the confounder regarding the outcome in the control group "),
+    helpText("gamma - Log odds ratio of the confounder regarding the treatment assignment "),
+    helpText("q Prevelance of the binary confounder ")
   )
   )
 
