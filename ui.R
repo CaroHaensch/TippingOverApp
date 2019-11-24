@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(reshape2)
+library(magrittr)
 
 # Default values
 alpha1range <- c(-0.693,0.693)
@@ -21,7 +22,8 @@ fluidPage(
   # Title
   titlePanel("TippingSens App for Rosenbaum-Rubin Sensitivity Analyses")),
   column(12,wellPanel(
-    plotOutput("SensPlot")
+    plotOutput("SensPlot"),
+    downloadButton('downloadPlot', 'Download Plot')
   )
   ),
 
@@ -94,13 +96,7 @@ fluidPage(
                 selected = "range"
     ),
     helpText("When choosing range the highest value will be orange and the lowest white, when choosing zerotomax negative values will be blue, positive ones orange and values near zero are white.")
-    ),
-  wellPanel(
-    helpText("alpha - Log odds ratio of the confounder regarding the outcome in the treatment group "),
-    helpText("beta - Log odds ratio of the confounder regarding the outcome in the control group "),
-    helpText("gamma - Log odds ratio of the confounder regarding the treatment assignment "),
-    helpText("q Prevelance of the binary confounder ")
-  )
+    )
   )
 
   )
