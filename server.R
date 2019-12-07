@@ -55,20 +55,20 @@ function(input, output){
     
     
     if (input$xAxis!="alpha" & input$yAxis!="alpha"){
-      alpha1range <- c(-1,1)
-      alpha1vector <- seq(-1,1,length.out = steps)   
+      alpha1range <- c(input$alpha,input$alpha)
+      alpha1vector <- rep(input$alpha,steps)   
     }
     if (input$xAxis!="beta" & input$yAxis!="beta"){
-      beta1range <- c(-1,1)
-      beta1vector <- seq(-1,1,length.out = steps) 
+      beta1range <- c(input$beta,input$beta)
+      beta1vector <- rep(input$beta,steps) 
     }
     if (input$xAxis!="gamma" & input$yAxis!="gamma"){
-      gamma1range <- c(-1,1)
-      gamma1vector <- seq(-1,1,length.out = steps) 
+      gamma1range <- c(input$gamma,input$gamma)
+      gamma1vector <- rep(input$gamma,steps) 
     }
     if (input$xAxis!="q" & input$yAxis!="q"){
-      qrange <- c(0.4,0.6)
-      qvector <- seq(0.4,0.6,length.out = steps) 
+      qrange <- c(input$q,input$q)
+      qvector <- rep(input$q,steps) 
     }
     
     
@@ -158,26 +158,102 @@ function(input, output){
       
     } 
     
-    reacdata1 <- list(DataF,DataSens)
+    
+   
+    # Depending on the choices the user did in the user interface, we
+    # will need different twodimensional dataframe
+    # We use the inputvalues to extract them from the four-dimensional
+    # matrix
+    
+    
+    
+    pasteform <- "ATEmatrix["
+    
+    if (input$xAxis!="alpha"&input$yAxis!="alpha"){
+      print(input$alpha)
+      pasteform <- paste(pasteform,"1",sep="")
+    }
+    
+    pasteform <- paste(pasteform,",",sep="")
+    
+    if (input$xAxis!="beta"&input$yAxis!="beta"){
+      print(input$beta)
+      pasteform <- paste(pasteform,"1",sep="")
+    }
+    
+    pasteform <- paste(pasteform,",",sep="")
+    
+    if (input$xAxis!="gamma"&input$yAxis!="gamma"){
+      print(input$gamma)
+      pasteform <- paste(pasteform,"1",sep="")
+    }
+    
+    pasteform <- paste(pasteform,",",sep="")
+    
+    if (input$xAxis!="q"&input$yAxis!="q"){
+      print(input$q)
+      pasteform <- paste(pasteform,"1",sep="")
+    }
+    
+    pasteform <- paste(pasteform,"]",sep="")
+    
+    #check the text for the index (will be seen in the console output)
+    
+    if(input$xAxis=="alpha"){
+      var1range<-alpha1range
+    } else if(input$xAxis=="beta"){
+      var1range<-beta1range
+    } else if(input$xAxis=="gamma"){
+      var1range<-gamma1range
+    } else if(input$xAxis=="q"){
+      var1range<-qrange
+    }
+    
+    if(input$yAxis=="alpha"){
+      var2range<-alpha1range
+    } else if(input$yAxis=="beta"){
+      var2range<-beta1range
+    } else if(input$yAxis=="gamma"){
+      var2range<-gamma1range
+    } else if(input$yAxis=="q"){
+      var2range<-qrange
+    }
+    
+    fixedpara<-","
+    if (input$xAxis!="alpha" & input$yAxis!="alpha"){
+      fixedpara<-paste(fixedpara, paste("alpha_1 = ",input$alpha))}
+    if (input$xAxis!="beta" & input$yAxis!="beta"){
+      fixedpara<-paste(fixedpara,paste("beta_1 = ",input$beta))}
+    if (input$xAxis!="gamma" & input$yAxis!="gamma"){
+      fixedpara<-paste(fixedpara,paste("gamma_1 = ",input$gamma))}
+    if (input$xAxis!="q" & input$yAxis!="q"){
+      fixedpara<-paste(fixedpara,paste("q = ",input$q))}
+    
+    reacdata1 <- list(DataF,DataSens, pasteform, var1range, var2range, fixedpara)
     reacdata1
     
-  }) %>% debounce(2000)
+  }) %>% debounce(3000)
   
   # Not that we have the correct data, it's time for plotting the TippingPointPlot
   
   
   
   
-  plotInput <- function(){
-    
-    reacDat <- ReacData1()
+  plotInput <- function(reacDat=ReacData1()){
     
     DataF <- reacDat[[1]]
     DataSens <- reacDat[[2]]
+    pasteform <- reacDat[[3]]
+    var1range <- reacDat[[4]]
+    var2range <- reacDat[[5]]
+    fixedpara <- reacDat[[6]]
+    
+    
     alpha1vector<-DataSens$alpha1vector
     beta1vector<-DataSens$beta1vector
     gamma1vector<- DataSens$gamma1vector 
     qvector<-DataSens$qvector
+    
     alpha1range<-DataSens$alpha1range
     beta1range<-DataSens$beta1range
     gamma1range<-DataSens$gamma1range
@@ -195,6 +271,7 @@ function(input, output){
             
             alpha1 <- alpha1vector[i]
             beta1 <- beta1vector[j]
+            gamma1 <- gamma1vector[k]
             q <- qvector[l]
             p <- mean(DataF$Treatment)
             
@@ -207,7 +284,7 @@ function(input, output){
             
             # Default: Specifying gamma1 and estimating gamma0
             
-            gamma1 <- gamma1vector[k]
+            
             # Estimate gamma0 (see page 501)
             f1 <- function(x){
               q*exp(x + gamma1)/(1 + exp(x + gamma1)) + (1-q)*exp(x)/(1 + exp(x))-p
@@ -321,59 +398,16 @@ function(input, output){
     
     
     
-    ### Optional error check used for troubleshooting
-    # print(sum(exists("input$q"),exists("input$gamma"),exists("input$beta"),
-    #          exists("input$alpha")))
-    
-    # Depending on the choices the user did in the user interface, we
-    # will need different twodimensional dataframe
-    # We use the inputvalues to extract them from the four-dimensional
-    # matrix
-    
-    print(c(input$alpha,input$beta,input$gamma,input$q, input$xAxis,input$yAxis))
-    
-    pasteform <- "ATEmatrix["
-    
-    if (input$xAxis!="alpha"&input$yAxis!="alpha"){
-      print(input$alpha)
-      pasteform <- paste(pasteform,"1",sep="")
-    }
-    
-    pasteform <- paste(pasteform,",",sep="")
-    
-    if (input$xAxis!="beta"&input$yAxis!="beta"){
-      print(input$beta)
-      pasteform <- paste(pasteform,"1",sep="")
-    }
-    
-    pasteform <- paste(pasteform,",",sep="")
-    
-    if (input$xAxis!="gamma"&input$yAxis!="gamma"){
-      print(input$gamma)
-      pasteform <- paste(pasteform,"1",sep="")
-    }
-    
-    pasteform <- paste(pasteform,",",sep="")
-    
-    if (input$xAxis!="q"&input$yAxis!="q"){
-      print(input$q)
-      pasteform <- paste(pasteform,"1",sep="")
-    }
-    
-    pasteform <- paste(pasteform,"]",sep="")
-    
-    #check the text for the index (will be seen in the console output)
-    print(pasteform)
     
     ATEmatrixdf <- eval(parse(text=pasteform))
     
     
     
     
-    reacDat<-list(DataSens,ATEmatrixdf)
+
     
     
-    SensPara <- reacDat[[1]]
+    SensPara <- DataSens
     alpha1vector <- SensPara$alpha1vector
     beta1vector <- SensPara$beta1vector
     gamma1vector <- SensPara$gamma1vector
@@ -384,7 +418,6 @@ function(input, output){
     gamma1range <- SensPara$gamma1range
     qrange <- SensPara$qrange
     
-    ATEmatrixdf <- reacDat[[2]]
     
     
     
@@ -393,26 +426,7 @@ function(input, output){
       ATEmatrixdf<-t(ATEmatrixdf)
     }
     print(ATEmatrixdf)
-    if(input$xAxis=="alpha"){
-      var1range<-alpha1range
-    } else if(input$xAxis=="beta"){
-      var1range<-beta1range
-    } else if(input$xAxis=="gamma"){
-      var1range<-gamma1range
-    } else if(input$xAxis=="q"){
-      var1range<-qrange
-    }
-    
-    if(input$yAxis=="alpha"){
-      var2range<-alpha1range
-    } else if(input$yAxis=="beta"){
-      var2range<-beta1range
-    } else if(input$yAxis=="gamma"){
-      var2range<-gamma1range
-    } else if(input$yAxis=="q"){
-      var2range<-qrange
-    }
-    
+ 
     
     
     ## Sensitivity Analaysis Plot (see Liublinska Tipping Point Code! only slightly adapted here)
@@ -440,7 +454,7 @@ function(input, output){
           scale_fill_gradient(low="white", 
                               high="orange", 
                               na.value = "black", 
-                              space="rgb") #color gradietn
+                              space="rgb") #color gradient
       if(max(ATEmatrixdf$value)<0)
         TippingPointPlot <- TippingPointPlot + 
           scale_fill_gradient(low="steelblue", 
@@ -492,15 +506,7 @@ function(input, output){
             axis.text.y = element_text(colour = "black"))
     
     # Parameter Information for the Static Plots
-    fixedpara<-","
-    if (input$xAxis!="alpha" & input$yAxis!="alpha"){
-      fixedpara<-paste(fixedpara, paste("alpha_1 = ",input$alpha))}
-    if (input$xAxis!="beta" & input$yAxis!="beta"){
-      fixedpara<-paste(fixedpara,paste("beta_1 = ",input$beta))}
-    if (input$xAxis!="gamma" & input$yAxis!="gamma"){
-      fixedpara<-paste(fixedpara,paste("gamma_1 = ",input$gamma))}
-    if (input$xAxis!="q" & input$yAxis!="q"){
-      fixedpara<-paste(fixedpara,paste("q = ",input$q))}
+
     
     
     TippingPointPlot <- TippingPointPlot + 
@@ -512,7 +518,7 @@ function(input, output){
   #Create an outputPlot object
   
   output$SensPlot <- renderPlot({
-    withProgress(message = "Loading, will take about 10 seconds",expr = {print(plotInput())})
+    withProgress(message = "Loading, will take about 4 seconds",expr = {print(plotInput())})
   })
   
   
