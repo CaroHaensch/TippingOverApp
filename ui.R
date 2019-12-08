@@ -76,7 +76,7 @@ fluidPage(
               accept=c('text/csv', 'text/comma-separated- values,text/plain', '.csv')), 
         helpText("Take care to specify column names correctly. The column names should be
             'Treatment' and 'Outcome'. No rownames or missing values are allowed. Separators are allowed to be comma, point or tab. Decimal separators are allowed to be comma or point. "),
-       helpText("An example file can be found here (https://github.com/CaroHaensch/TSExample). "),
+       helpText("An example file can be found here (https://github.com/CaroHaensch/TippingOverExampleFiles). "),
        
     tags$hr(),
     radioButtons('sep', 'Separator',
