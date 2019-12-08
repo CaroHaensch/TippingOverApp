@@ -20,7 +20,7 @@ fluidPage(
 
   column(12,
   # Title
-  titlePanel("TippingSens App for Rosenbaum-Rubin Sensitivity Analyses")),
+  titlePanel("TippingOver App for Rosenbaum-Rubin Sensitivity Analyses")),
   column(12,wellPanel(
     plotOutput("SensPlot"),
     downloadButton('downloadPlot', 'Download Plot')
