@@ -23,7 +23,7 @@ function(input, output){
     
     validate(
       need(!is.null(input$alpha)|!is.null(input$beta)|!is.null(input$gamma)|!is.null(input$q),
-           "Please move any slider to create your first sensitivity plot. Default data is taken from Rosenbaum and Rubin (1983).
+           "Please move any slider to create your first sensitivity plot. Default data are taken from Rosenbaum and Rubin (1983).
              
               Remember:
                 alpha - Log odds ratio of the confounder regarding the outcome in the treatment group 
@@ -290,7 +290,7 @@ function(input, output){
               q*exp(x + gamma1)/(1 + exp(x + gamma1)) + (1-q)*exp(x)/(1 + exp(x))-p
             }
             
-            gamma0 <- uniroot(f1,interval=c(-100,100), tol = .Machine$double.eps^0.35)$root
+            gamma0 <- uniroot(f1,interval=c(-100,100), tol = .Machine$double.eps^0.5)$root
             
             
             # Function parts that we will need to estimate alpha0, beta0 etc.
@@ -310,7 +310,7 @@ function(input, output){
               ((q*q1/(ptheo1))*exp(x + alpha1)/(1 + exp(x + alpha1)) + ((1-q)*q2/ptheo1)*exp(x)/(1 + exp(x)))-mittelwertT
             }
             
-            alpha0 <- uniroot(f2,interval=c(-100,100), tol = .Machine$double.eps^0.35)$root
+            alpha0 <- uniroot(f2,interval=c(-100,100), tol = .Machine$double.eps^0.5)$root
             
             # Estimate beta0 (see page 502 RR)
             
@@ -320,7 +320,7 @@ function(input, output){
               (q*(q3)/(ptheo0))*exp(x + beta1)/(1 + exp(x + beta1)) + ((1-q)*(q4)/ptheo0)*exp(x)/(1 + exp(x))-mittelwertC
             }
             
-            beta0 <- tryCatch(uniroot(f3,interval=c(0,1),extendInt = "yes", tol = .Machine$double.eps^0.35)$root, error=function(e) 0)
+            beta0 <- tryCatch(uniroot(f3,interval=c(0,1),extendInt = "yes", tol = .Machine$double.eps^0.5)$root, error=function(e) 0)
             
             # Save results
             
@@ -491,17 +491,17 @@ function(input, output){
       scale_x_continuous(name = input$xAxis, 
                          breaks = round(seq(var1range[1],
                                             var1range[2],
-                                            length.out = steps),3), 
+                                            length.out = steps),2), 
                          labels = round(seq(var1range[1],
                                             var1range[2],
-                                            length.out = steps),3)) +
+                                            length.out = steps),2)) +
       scale_y_continuous(name = input$yAxis, 
                          breaks = round(seq(var2range[1],
                                             var2range[2],
-                                            length.out = steps),3), 
+                                            length.out = steps),2), 
                          labels = round(seq(var2range[1],
                                             var2range[2],
-                                            length.out = steps),3)) + theme_bw() + 
+                                            length.out = steps),2)) + theme_bw() + 
       theme(axis.text.x =  element_text(colour = "black"),
             axis.text.y = element_text(colour = "black"))
     

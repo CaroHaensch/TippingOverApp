@@ -75,7 +75,7 @@ fluidPage(
        fileInput('datafile', 'Choose CSV File for the data (treatment and outcome). ',
               accept=c('text/csv', 'text/comma-separated- values,text/plain', '.csv')), 
         helpText("Take care to specify column names correctly. The column names should be
-            'Treatment' and 'Outcome'. No rownames or missing values are allowed. Separators are allowed to be comma, point or tab. Decimal separators are allowed to be comma or point. "),
+            'Treatment' and 'Outcome'. No rownames or missing values are allowed. Separators are allowed to be comma, semicolon, or tab. Decimal separators are allowed to be comma or point. "),
        helpText("An example file can be found here (https://github.com/CaroHaensch/TippingSensExampleFiles). "),
        
     tags$hr(),
@@ -95,7 +95,7 @@ fluidPage(
                 choices = c("range", "zerotomax"),
                 selected = "range"
     ),
-    helpText("When choosing range the highest value will be orange and the lowest white, when choosing zerotomax negative values will be blue, positive ones orange and values near zero are white.")
+    helpText("When choosing range the largest value will be orange and the smallest white, when choosing zerotomax negative values will be blue, positive ones orange and values near zero will be white.")
     )
   )
 
